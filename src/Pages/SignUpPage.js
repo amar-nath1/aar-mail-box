@@ -1,12 +1,13 @@
 import { useRef } from "react"
 import { Button, Card, Form } from "react-bootstrap"
+import { Link } from "react-router-dom"
+import classes from './SignUpPage.module.css'
 
 const SignUpPage=()=>{
 
     const emailRef=useRef()
     const passwordRef=useRef()
     const confPasswordRef=useRef()
-
 
     const signUpSubmitHandler=async(event)=>{
         event.preventDefault()
@@ -58,9 +59,12 @@ const SignUpPage=()=>{
     }
 
     return (
-        <Card style={{width:'400px'}}>
 
-        <Form onSubmit={signUpSubmitHandler} className="m-4 p-4 border border-primary">
+        <div className="h-100" style={{backgroundImage:'url(/images/signupback.jpg)'}}>
+
+        <Card className={classes.centered}>
+
+        <Form onSubmit={signUpSubmitHandler} className="m-4 p-2">
             <h1 className="text-dark mb-4 border-bottom border-dark pb-2">Sign Up</h1>
             <Form.Group className='m-2'>
                 <Form.Control type="email" placeholder="Enter Email" ref={emailRef} required></Form.Control>
@@ -76,7 +80,9 @@ const SignUpPage=()=>{
             <Button type='submit'>Sign Up</Button>
 
         </Form>
+        <p className="ms-4">Already Have an account? <Link to='/login'>Login</Link></p>
         </Card>
+        </div>
     )
 
 }
