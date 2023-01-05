@@ -36,7 +36,9 @@ const sendMailHandler=async(event)=>{
     const sentMailData={
         recipient:to,
         emailSubject:enteredSubject,
-        emailBody:emailBody
+        emailBody:emailBody,
+        sentAt:new Date().toLocaleTimeString(),
+        from:userAuthDetail.email
     }
 
 
