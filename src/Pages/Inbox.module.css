@@ -1,0 +1,9 @@
+
+.card:hover{
+    background-color: lightblue;
+}
+.cardElements{
+    
+    text-decoration: none;
+    color: black;
+}

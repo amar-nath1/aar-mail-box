@@ -1,9 +1,11 @@
 import { useRef } from "react"
 import { Button, Card, Form } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
+import { useDispatch } from "react-redux"
+import { setAuthActions } from "../store/authSlice"
 
 const LoginPage=()=>{
-
+    const dispatch=useDispatch()
     const navigate=useNavigate()
     const emailRef=useRef()
     const passwordRef=useRef()
@@ -43,6 +45,7 @@ const LoginPage=()=>{
             let loginJsonRes=await loginResponse.json()
             console.log(loginJsonRes.email, 'is Logged In successfully')
             localStorage.setItem('currUser',JSON.stringify({token:loginJsonRes.idToken,email:loginJsonRes.email}))
+            dispatch(setAuthActions.isAuthenticated())
             navigate('/homepage')
                 }catch(error){
                 

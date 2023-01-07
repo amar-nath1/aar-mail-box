@@ -16,7 +16,6 @@ const Compose=(props)=>{
         setTo(e.target.value)
     }
 
-    
     const editorState=EditorState.createEmpty()
     const [description,setDescription]=useState(editorState)
     const EditorStateChangeHandler=(editorState)=>{
@@ -26,7 +25,7 @@ const Compose=(props)=>{
 
     const emailBody=draftToHtml(convertToRaw((description.getCurrentContent())))
     const userAuthDetail=JSON.parse(localStorage.getItem('currUser'))
-    const userEmail=userAuthDetail.email.replace(/\W/g, '')
+    
     
 
 const sendMailHandler=async(event)=>{
@@ -37,14 +36,19 @@ const sendMailHandler=async(event)=>{
         recipient:to,
         emailSubject:enteredSubject,
         emailBody:emailBody,
-        sentAt:new Date().toLocaleTimeString(),
-        from:userAuthDetail.email
+        sentAt:new Date().toLocaleString(),
+        from:userAuthDetail.email,
+        newMail:true
     }
 
 
-   let res=await axios.post(`https://aar-mail-box-default-rtdb.firebaseio.com/${userEmail}.json`,sentMailData)
-    console.log(res.statusText)
-   console.log('bej diya')
+   let res=await axios.post(`https://aar-mail-box-default-rtdb.firebaseio.com/${to.replace(/\W/g, '')}.json`,sentMailData)
+    
+   if (res.statusText==='OK'){
+    props.showCompose()
+    
+   }
+   
     
 }
 
