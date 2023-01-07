@@ -1,4 +1,10 @@
 
+.mainCard{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
 .card:hover{
     background-color: lightblue;
 }
@@ -6,4 +12,7 @@
     
     text-decoration: none;
     color: black;
+}
+.card{
+    width: 1000px;
 }

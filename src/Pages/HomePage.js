@@ -76,7 +76,7 @@ const HomePage=()=>{
         <Button onClick={showInboxHandler} variant='danger'>Inbox <span className="ms-1 bg-primary p-2 rounded-pill">{unreadMailCount}</span></Button>
         <Button variant='success'>Sent Items</Button></div>
         { showCompose && <Compose showCompose={showComposeHandler}></Compose>}
-        {!showCompose && <Inbox inboxArray={inboxArr}></Inbox>}
+        {!showCompose && <Inbox inboxArray={inboxArr} handleFetch={fetchInboxHandler}></Inbox>}
         </Container>
     )
 
