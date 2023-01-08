@@ -1,35 +1,77 @@
 import axios from "axios"
-import { memo } from "react"
-
+import { useEffect } from "react"
+import { useSelector } from "react-redux"
 import {Card, Form } from "react-bootstrap"
-
+import { mailArrActions } from "../store/mailSlice"
 import { Link } from "react-router-dom"
 import classes from './Inbox.module.css'
-
+import { useDispatch } from "react-redux"
 
 const Inbox = (props) => {
+    const inboxArr=useSelector(state=>state.mailArr.allMails)
+    const userAuthDetail=JSON.parse(localStorage.getItem('currUser'))
+    let userEmail=userAuthDetail.email.replace(/\W/g, '')
     
+    const dispatch=useDispatch()
+    const inboxShow=props.inboxShow
+    if (!inboxShow){
+        userEmail=`sent-by-${userEmail}`
+    }
+    
+    const fetchInboxHandler=async(userMailBoxID)=>{
+      
+        try{
+    
+            let inbox=await axios.get(`https://aar-mail-box-default-rtdb.firebaseio.com/${userMailBoxID}.json`)
+    
+            if (inbox.statusText!=='OK'){
+                throw new Error('Could not load the Inbox mail Try again')
+            }
+            
+            let unreadCount =0
+            const emailsArr = []
+            for (let key in inbox.data){
+                emailsArr.push({
+                    id:key,
+                    emailSubject:inbox.data[key].emailSubject,
+                    emailBody:inbox.data[key].emailBody,
+                    sentAt:inbox.data[key].sentAt,
+                    from:inboxShow? inbox.data[key].from:inbox.data[key].recipient,
+                    newMail:inbox.data[key].newMail
+                })
+                if (inbox.data[key].newMail===true){
+                  unreadCount+=1
+                }
+            }
+            props.childDataHandler(unreadCount)
+        
+            dispatch(mailArrActions.setMailArr(emailsArr))
+       
+        }catch(error){
+            alert(error.message)
+        }     
+    }
     
     let revMailArr = []
-    for (let i = props.inboxArray.length - 1; i >= 0; i--) {
+    for (let i = inboxArr.length - 1; i >= 0; i--) {
 
-        revMailArr.push(props.inboxArray[i])
+        revMailArr.push(inboxArr[i])
     }
-
-
+    
+    
     let inboxMessages = revMailArr.map((email) => {
-        const userAuthDetail = JSON.parse(localStorage.getItem('currUser'))
+        
         const readMailHandler = async () => {
-            const userEmail = userAuthDetail.email.replace(/\W/g, '')
+            
             await axios.patch(`https://aar-mail-box-default-rtdb.firebaseio.com/${userEmail}/${email.id}.json`, { newMail: false })
         }
 
         const deleteMailHandler = async () => {
-            const userEmail = userAuthDetail.email.replace(/\W/g, '')
+            
            let delRes= await axios.delete(`https://aar-mail-box-default-rtdb.firebaseio.com/${userEmail}/${email.id}.json`)
             
            if (delRes.statusText==='OK'){
-            props.handleFetch()
+            fetchInboxHandler(userEmail)
             console.log('delete success')
            }
            else{
@@ -37,32 +79,35 @@ const Inbox = (props) => {
         }
         }
         
-
         return <div key={email.id} className={classes.mainCard}>
-        <Card className={classes.card} >
-        <Link  className={classes.cardElements} to={`${email.id}`}> 
-        
             
+        <div className={classes.card} >
+        <Link  className={classes.cardElements} to={`${email.id}`}> 
+           
             <Card.Body className={`d-flex justify-content-between`} onClick={readMailHandler}>
-                <Form.Check
+            {inboxShow &&  <Form.Check
                     checked={email.newMail}
                     readOnly
                     type='checkbox'
                     id={`${email.id}_read`}
-                />
+                />}
                 <Card.Subtitle>{email.emailSubject}</Card.Subtitle>
-                <p>from:- {email.from}</p>
+                {inboxShow && <p >from:- {email.from}</p>}
                 <Card.Text>{`${email.sentAt}`}</Card.Text>
             </Card.Body>
             </Link>
-            </Card>
-            <button type='button' className='btn btn-outline-danger mt-3 h-50' onClick={deleteMailHandler}>X</button>
             </div>
             
-            
-        
-        
+            <button type='button' className='btn btn-outline-danger ms-2' onClick={deleteMailHandler}>X</button>
+            </div>
+              
     })
+    useEffect(()=>{
+      
+      fetchInboxHandler(userEmail)
+        
+        
+    },[inboxShow])
 
     return (
         <div className="mt-4">
@@ -71,4 +116,4 @@ const Inbox = (props) => {
     )
 }
 
-export default memo(Inbox)
+export default Inbox

@@ -33,23 +33,40 @@ const sendMailHandler=async(event)=>{
     const enteredSubject=subjectRef.current.value  // subject field
 
     const sentMailData={
-        recipient:to,
+        
         emailSubject:enteredSubject,
         emailBody:emailBody,
         sentAt:new Date().toLocaleString(),
         from:userAuthDetail.email,
         newMail:true
     }
+    const dataForSentBox={
+        recipient:to,
+        emailSubject:enteredSubject,
+        emailBody:emailBody,
+        sentAt:new Date().toLocaleString(),
+        
+        newMail:true
+    }
 
 
    let res=await axios.post(`https://aar-mail-box-default-rtdb.firebaseio.com/${to.replace(/\W/g, '')}.json`,sentMailData)
     
-   if (res.statusText==='OK'){
-    props.showCompose()
+   if (res.statusText!=='OK'){
+    alert('Mail could not sent. try again')
     
    }
-   
+
+   //api post for sentbox
+
+   let resForSentbox=await axios.post(`https://aar-mail-box-default-rtdb.firebaseio.com/sent-by-${userAuthDetail.email.replace(/\W/g, '')}.json`,dataForSentBox)
+   if (resForSentbox.statusText==='OK'){
+    console.log(' sent for sentBox.')
     
+   }
+
+   props.showCompose()
+     
 }
 
     return (

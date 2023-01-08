@@ -2,13 +2,17 @@ import { useRef } from "react"
 import { Button, Card, Form } from "react-bootstrap"
 import { Link } from "react-router-dom"
 import classes from './SignUpPage.module.css'
+import { setAuthActions } from "../store/authSlice"
+import { useNavigate } from "react-router-dom"
+import { useDispatch } from "react-redux"
 
 const SignUpPage=()=>{
 
     const emailRef=useRef()
     const passwordRef=useRef()
     const confPasswordRef=useRef()
-
+    const navigate=useNavigate()
+    const dispatch=useDispatch()
     const signUpSubmitHandler=async(event)=>{
         event.preventDefault()
         const enteredEmail=emailRef.current.value
@@ -50,6 +54,9 @@ const SignUpPage=()=>{
 
             let signUpJsonRes=await signUpResponse.json()
             console.log(signUpJsonRes.email, 'is now registered')
+            localStorage.setItem('currUser',JSON.stringify({token:signUpJsonRes.idToken,email:signUpJsonRes.email}))
+            dispatch(setAuthActions.isAuthenticated())
+            navigate('/homepage')
                 }catch(error){
                 alert(error.message)
                 
