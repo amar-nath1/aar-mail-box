@@ -5,11 +5,12 @@ import { Button, Card,Form } from "react-bootstrap";
 import { Editor } from "react-draft-wysiwyg"
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import classes from './Compose.module.css'
-import axios from "axios";
+
+import useHttp from "./hooks/use-Http";
 
 const Compose=(props)=>{
 
-
+    const [sendRequest]=useHttp()
     const [to,setTo]=useState(null) //To field
     const subjectRef=useRef()
     const toChangeHandler=(e)=>{
@@ -30,6 +31,12 @@ const Compose=(props)=>{
 
 const sendMailHandler=async(event)=>{
     event.preventDefault()
+
+    // scroll to top
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+    });
     const enteredSubject=subjectRef.current.value  // subject field
 
     const sentMailData={
@@ -50,7 +57,7 @@ const sendMailHandler=async(event)=>{
     }
 
 
-   let res=await axios.post(`https://aar-mail-box-default-rtdb.firebaseio.com/${to.replace(/\W/g, '')}.json`,sentMailData)
+   let res=await sendRequest(`${to.replace(/\W/g, '')}`,{type:'post',data:sentMailData})
     
    if (res.statusText!=='OK'){
     alert('Mail could not sent. try again')
@@ -59,7 +66,7 @@ const sendMailHandler=async(event)=>{
 
    //api post for sentbox
 
-   let resForSentbox=await axios.post(`https://aar-mail-box-default-rtdb.firebaseio.com/sent-by-${userAuthDetail.email.replace(/\W/g, '')}.json`,dataForSentBox)
+   let resForSentbox=await sendRequest(`sent-by-${userAuthDetail.email.replace(/\W/g, '')}`,{type:'post',data:dataForSentBox})
    if (resForSentbox.statusText==='OK'){
     console.log(' sent for sentBox.')
     
@@ -71,6 +78,7 @@ const sendMailHandler=async(event)=>{
 
     return (
         <>
+        
         <Form onSubmit={sendMailHandler} className={classes.forms}>
         <div className='d-flex justify-content-end'> <button onClick={()=>{props.showCompose()}} type="button" className="btn-close " aria-label="Close"></button></div>
         <Form.Group className='mt-4 mb-2'>

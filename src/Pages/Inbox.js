@@ -1,5 +1,5 @@
-import axios from "axios"
-import { useEffect, useMemo } from "react"
+
+import { useEffect} from "react"
 import { useSelector } from "react-redux"
 import {Card, Form } from "react-bootstrap"
 import { mailArrActions } from "../store/mailSlice"
@@ -7,6 +7,7 @@ import { Link } from "react-router-dom"
 import classes from './Inbox.module.css'
 import { useDispatch } from "react-redux"
 import { memo} from "react"
+import useHttp from "../Components/hooks/use-Http"
 
 const Inbox = (props) => {
     
@@ -15,23 +16,20 @@ const Inbox = (props) => {
     const unreadMailCount=useSelector(state=>state.mailArr.unreadMails)
     const userAuthDetail=JSON.parse(localStorage.getItem('currUser'))
     let userEmail=userAuthDetail.email.replace(/\W/g, '')
-    // const useEm=userAuthDetail.email.replace(/\W/g, '')
+    
     
     const dispatch=useDispatch()
     const inboxShow=props.inboxShow
     if (!inboxShow){
         userEmail=`sent-by-${userEmail}`
     }
+
+    const [sendRequest]=useHttp()
     
     const fetchInboxHandler=async(userMailBoxID)=>{
       
-        try{
-    
-            let inbox=await axios.get(`https://aar-mail-box-default-rtdb.firebaseio.com/${userMailBoxID}.json`)
-    
-            if (inbox.statusText!=='OK'){
-                throw new Error('Could not load the Inbox mail Try again')
-            }
+
+        let inbox=await sendRequest(userMailBoxID,{type:'get'})
             
             let unreadCount =0
             const emailsArr = []
@@ -49,13 +47,10 @@ const Inbox = (props) => {
                 }
             }
             
-        console.log(emailsArr)
+        
             dispatch(mailArrActions.setMailArr(emailsArr))
             dispatch(mailArrActions.setUnreadMails(unreadCount))
-       
-        }catch(error){
-            alert(error.message)
-        }     
+          
     }
     
     let revMailArr = []
@@ -64,17 +59,17 @@ const Inbox = (props) => {
         revMailArr.push(inboxArr[i])
     }
     
-    
     let inboxMessages = revMailArr.map((email) => {
         
-        const readMailHandler = async () => {
+        const readMailHandler = () => {
             
-            await axios.patch(`https://aar-mail-box-default-rtdb.firebaseio.com/${userEmail}/${email.id}.json`, { newMail: false })
+            sendRequest(userEmail,{type:'patch',data:{ newMail: false }},email)
         }
 
         const deleteMailHandler = async () => {
             
-           let delRes= await axios.delete(`https://aar-mail-box-default-rtdb.firebaseio.com/${userEmail}/${email.id}.json`)
+   
+            let delRes =await sendRequest(userEmail,{type:'delete'},email)
             
            if (delRes.statusText==='OK'){
             fetchInboxHandler(userEmail)
@@ -109,7 +104,6 @@ const Inbox = (props) => {
               
     })
     
-   
     useEffect(()=>{
       
       fetchInboxHandler(userEmail)

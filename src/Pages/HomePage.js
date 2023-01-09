@@ -1,18 +1,19 @@
-import { useState,useEffect, memo } from "react"
+import { useState,useEffect } from "react"
 import { useDispatch } from "react-redux"
 
 import { Button, Container } from "react-bootstrap"
 import Compose from "../Components/Compose"
 import { useSelector } from "react-redux"
 import Inbox from "./Inbox"
-import axios from "axios"
-import { mailArrActions } from "../store/mailSlice"
 
+import { mailArrActions } from "../store/mailSlice"
+import useHttp from "../Components/hooks/use-Http"
 import { showInboxActions } from "../store/mailSlice"
-import { useNavigate } from "react-router-dom"
+
 
 const HomePage=()=>{
     
+    const [sendRequest]=useHttp()
 
     const inboxShow=useSelector(state=>state.mailArr.inbox)
 
@@ -22,6 +23,7 @@ const HomePage=()=>{
     const [showCompose,setShowCompose]=useState(false)
     
     const showComposeHandler=()=>{
+      
         setShowCompose(!showCompose)
     }
 
@@ -46,15 +48,13 @@ if(showCompose){
   if(!inboxShow){
     showText='Sent Mails'
   }
-  else if (showCompose){
-    showText='Compose Mail'
-  }
+ 
 
   const userAuthDetail=JSON.parse(localStorage.getItem('currUser'))
   let userEmail=userAuthDetail.email.replace(/\W/g, '')
 
  let a=  setInterval(async() => {
-    let inbox=await axios.get(`https://aar-mail-box-default-rtdb.firebaseio.com/${userEmail}.json`)
+    let inbox=await sendRequest(userEmail,{type:'get'})
     let unreadCount =0
     const emailsArr = []
     for (let key in inbox.data){
@@ -99,7 +99,7 @@ if(showCompose){
         <Button onClick={showComposeHandler} variant='warning'>{showCompose?'Close Compose':'Compose Mail'}</Button>
         <Button onClick={showInboxHandler} variant='danger'>Inbox {inboxShow && <span className="ms-1 bg-primary p-2 rounded-pill">{unreadMailCount}</span>}</Button>
         <Button variant='success' onClick={showSentBoxHandler}>Sent Items</Button></div>
-        <h3 className='border-bottom border-dark p-3'>{showText}</h3>
+        {!showCompose && <h3 className='border-bottom border-dark p-3'>{showText}</h3>}
         { showCompose && <Compose showCompose={showComposeHandler}></Compose>}
         {!showCompose && <Inbox  inboxShow={inboxShow} ></Inbox>}
         
