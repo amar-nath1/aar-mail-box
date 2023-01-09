@@ -1,16 +1,21 @@
 import axios from "axios"
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { useSelector } from "react-redux"
 import {Card, Form } from "react-bootstrap"
 import { mailArrActions } from "../store/mailSlice"
 import { Link } from "react-router-dom"
 import classes from './Inbox.module.css'
 import { useDispatch } from "react-redux"
+import { memo} from "react"
 
 const Inbox = (props) => {
+    
+
     const inboxArr=useSelector(state=>state.mailArr.allMails)
+    const unreadMailCount=useSelector(state=>state.mailArr.unreadMails)
     const userAuthDetail=JSON.parse(localStorage.getItem('currUser'))
     let userEmail=userAuthDetail.email.replace(/\W/g, '')
+    // const useEm=userAuthDetail.email.replace(/\W/g, '')
     
     const dispatch=useDispatch()
     const inboxShow=props.inboxShow
@@ -43,9 +48,10 @@ const Inbox = (props) => {
                   unreadCount+=1
                 }
             }
-            props.childDataHandler(unreadCount)
-        
+            
+        console.log(emailsArr)
             dispatch(mailArrActions.setMailArr(emailsArr))
+            dispatch(mailArrActions.setUnreadMails(unreadCount))
        
         }catch(error){
             alert(error.message)
@@ -92,7 +98,7 @@ const Inbox = (props) => {
                     id={`${email.id}_read`}
                 />}
                 <Card.Subtitle>{email.emailSubject}</Card.Subtitle>
-                {inboxShow && <p >from:- {email.from}</p>}
+                <p >{inboxShow?'from:- ':'To:- '} {email.from}</p>
                 <Card.Text>{`${email.sentAt}`}</Card.Text>
             </Card.Body>
             </Link>
@@ -102,12 +108,14 @@ const Inbox = (props) => {
             </div>
               
     })
+    
+   
     useEffect(()=>{
       
       fetchInboxHandler(userEmail)
         
         
-    },[inboxShow])
+    },[inboxShow,unreadMailCount])
 
     return (
         <div className="mt-4">
@@ -116,4 +124,4 @@ const Inbox = (props) => {
     )
 }
 
-export default Inbox
+export default memo(Inbox)

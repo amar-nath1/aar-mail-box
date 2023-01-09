@@ -5,19 +5,20 @@ import { Button, Container } from "react-bootstrap"
 import Compose from "../Components/Compose"
 import { useSelector } from "react-redux"
 import Inbox from "./Inbox"
-
+import axios from "axios"
+import { mailArrActions } from "../store/mailSlice"
 
 import { showInboxActions } from "../store/mailSlice"
 import { useNavigate } from "react-router-dom"
 
 const HomePage=()=>{
-    const navigate=useNavigate()
-    const inboxShow=useSelector(state=>state.mailArr.inbox)
     
-   
+
+    const inboxShow=useSelector(state=>state.mailArr.inbox)
+
     const dispatch=useDispatch()
     // Unread Mail Count
-    const [unreadMailCount,setUnreadMailCount]=useState(0)
+    const unreadMailCount=useSelector(state=>state.mailArr.unreadMails)
     const [showCompose,setShowCompose]=useState(false)
     
     const showComposeHandler=()=>{
@@ -39,9 +40,7 @@ if(showCompose){
 
   }
  
- const childDataHandler=(unreadCount)=>{
-    setUnreadMailCount(unreadCount)
- }
+ 
  
   let showText='Inbox'
   if(!inboxShow){
@@ -50,6 +49,50 @@ if(showCompose){
   else if (showCompose){
     showText='Compose Mail'
   }
+
+  const userAuthDetail=JSON.parse(localStorage.getItem('currUser'))
+  let userEmail=userAuthDetail.email.replace(/\W/g, '')
+
+ let a=  setInterval(async() => {
+    let inbox=await axios.get(`https://aar-mail-box-default-rtdb.firebaseio.com/${userEmail}.json`)
+    let unreadCount =0
+    const emailsArr = []
+    for (let key in inbox.data){
+        emailsArr.push({
+            id:key,
+            emailSubject:inbox.data[key].emailSubject,
+            emailBody:inbox.data[key].emailBody,
+            sentAt:inbox.data[key].sentAt,
+            from:inbox.data[key].from,
+            newMail:inbox.data[key].newMail
+        })
+        if (inbox.data[key].newMail===true){
+          unreadCount+=1
+        }
+    }
+   if(unreadCount>unreadMailCount){
+    
+    dispatch(mailArrActions.setUnreadMails(unreadCount))
+   }
+   else{
+    
+   }
+    
+
+    }, 2000);
+    
+
+  useEffect(()=>{
+    
+
+    // cleanup function
+     return ()=>{
+      clearInterval(a)
+     }
+      
+  },[unreadMailCount,showCompose,inboxShow])
+  
+
     return (
         <Container>
             <div className="d-flex justify-content-around ">
@@ -58,7 +101,7 @@ if(showCompose){
         <Button variant='success' onClick={showSentBoxHandler}>Sent Items</Button></div>
         <h3 className='border-bottom border-dark p-3'>{showText}</h3>
         { showCompose && <Compose showCompose={showComposeHandler}></Compose>}
-        {!showCompose && <Inbox  inboxShow={inboxShow} childDataHandler={childDataHandler}></Inbox>}
+        {!showCompose && <Inbox  inboxShow={inboxShow} ></Inbox>}
         
         </Container>
     )

@@ -1,7 +1,7 @@
 
 import { createSlice} from "@reduxjs/toolkit";
 
-const iniState={allMails:[],inbox:true}
+const iniState={allMails:[],inbox:true, unreadMails:0}
 const mailSlice=createSlice({
     name:'allmails',
     initialState:iniState,
@@ -11,6 +11,9 @@ const mailSlice=createSlice({
         },
         setInboxShow(state,action){
             state.inbox=action.payload
+        },
+        setUnreadMails(state,action){
+            state.unreadMails=action.payload
         }
     }
 })
